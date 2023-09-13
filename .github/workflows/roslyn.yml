@@ -23,6 +23,15 @@ jobs:
         with:
           name: environment-variables
 
+      - name: Check if Environment Variables File Exists
+        run: |
+          if [ -f ./env-vars.txt ]; then
+            echo "Environment variables file exists."
+          else
+            echo "Environment variables file does not exist."
+            exit 1  # 파일이 없으면 오류로 처리
+          fi
+
       - name: Restore dependencies
         run: dotnet restore Roslyn/RoslynCode/Roslyn.csproj
 
