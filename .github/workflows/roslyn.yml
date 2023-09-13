@@ -3,25 +3,55 @@ name: Roslyn Analysis Workflow
 on:
   repository_dispatch:
     types:
-      - trigger-roslyn-analysis  # 프로젝트 저장소에서 트리거할 이벤트 이름과 동일
+      - trigger-roslyn-analysis
 
 jobs:
-  analyze-project-code:
+  analyze-code:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Project Repository
+      - name: Checkout Roslyn repository
         uses: actions/checkout@v2
         with:
-          repository: project-owner/project-repo  # 프로젝트 저장소의 소유자/저장소 이름
-          ref: main  # 원하는 브랜치로 변경 가능
+          repository: ATI-SWQA/Roslyn
+          ref: main
+          path: Roslyn
+          submodules: 'recursive'
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v2
-        with:
-          dotnet-version: 5.0.x
+      - name: Restore dependencies
+        run: dotnet restore Roslyn/RoslynCode/Roslyn.csproj
 
-      - name: Analyze Project Code
+      - name: Analyze and Create Report File
         run: |
-          # 여기에 프로젝트 코드 분석 스크립트 또는 명령을 추가합니다.
-        # 예: dotnet build, dotnet test, Roslyn 분석 도구 실행 등
+          timestamp=$(TZ="Asia/Seoul" date +"%Y%m%d%H%M")
+          reportFolderPath="report" 
+          reportFilePath="$reportFolderPath/coding_rule_violation_${timestamp}.txt"  
+          mkdir -p "$reportFolderPath"  
+          echo "Creating report file: $reportFilePath"
+          echo "" > $reportFilePath
+          echo "::set-output name=reportFilePath::$reportFilePath"
+          echo "REPORT_FILE_PATH=$reportFilePath" >> $GITHUB_ENV
+        id: create_report
+
+      - name: Build and Run Roslyn Analysis
+        run: |
+          REPORT_FILE_PATH="${REPORT_FILE_PATH// /}"
+          dotnet run --project Roslyn/RoslynCode/Roslyn.csproj >> $REPORT_FILE_PATH
+        env:
+          CHANGED_FILES: ${{env.CHANGED_FILES}}
+          PROJECT_PATH: ${{ env.PROJECT_PATH }}
+
+      - name: Commit and Push Report
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PROJECT_PATH: ${{ env.PROJECT_PATH }}
+        run: |
+          branch="${{ github.ref }}"
+          if [[ -n "$(git status --porcelain)" ]]; then
+            git add .
+            git commit -m "Add coding standard report"
+            git diff-index --quiet HEAD -- ':!roslyn_report.txt' || git commit -m "Add coding standard report"
+            git push origin "$branch"
+          else
+            echo "No changes to commit."
+          fi
