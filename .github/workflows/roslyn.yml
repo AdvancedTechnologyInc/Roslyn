@@ -1,0 +1,27 @@
+name: Roslyn Analysis Workflow
+
+on:
+  repository_dispatch:
+    types:
+      - trigger-roslyn-analysis  # 프로젝트 저장소에서 트리거할 이벤트 이름과 동일
+
+jobs:
+  analyze-project-code:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Project Repository
+        uses: actions/checkout@v2
+        with:
+          repository: project-owner/project-repo  # 프로젝트 저장소의 소유자/저장소 이름
+          ref: main  # 원하는 브랜치로 변경 가능
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: 5.0.x
+
+      - name: Analyze Project Code
+        run: |
+          # 여기에 프로젝트 코드 분석 스크립트 또는 명령을 추가합니다.
+        # 예: dotnet build, dotnet test, Roslyn 분석 도구 실행 등
