@@ -18,8 +18,21 @@ jobs:
           path: Roslyn
           submodules: 'recursive'
 
+      - name: Download Environment Variables Artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: environment-variables
+
       - name: Restore dependencies
         run: dotnet restore Roslyn/RoslynCode/Roslyn.csproj
+
+      - name: Set Environment Variables from File
+        run: |
+          # 다운로드한 파일에서 환경변수를 읽어옵니다.
+          source ./env-vars.txt
+          export PROJECT_PATH
+          export CHANGED_FILES
+          export OTHER_VARIABLE
 
       - name: Analyze and Create Report File
         run: |
