@@ -44,8 +44,7 @@ class Program
             File.WriteAllText(reportFilePath, reportContent);
         }
         else
-        {
-            Console.WriteLine("???.\n");
+        {            
             Console.WriteLine("Everything follows the coding rule.");
         }
     }
