@@ -150,7 +150,7 @@ namespace Roslyn
 
         bool IsCamelCase(string s)
         {
-            return !string.IsNullOrEmpty(s) && char.IsLower(s[0]) && s.All(char.IsLetterOrDigit);
+            return !string.IsNullOrEmpty(s) && char.IsLower(s[0]);
         }
 
         bool IsUpperSnakeCase(string s)
